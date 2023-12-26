@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script>
+    let globalId = 1;
+    let todoState = [];
+    let oldTodoState = [];
+
+    const nMap = new Map();
+    const oMap = new Map();
+
+
+
+    function addTodoToDOM(newObj) {
+      // big function we wrote in the beginning
+      const child = document.createElement("div");
+      child.setAttribute('id', newObj.id);
+
+      const grandChild1 = document.createElement("div");
+      grandChild1.innerHTML = newObj.title;
+
+      const grandChild2 = document.createElement("div");
+      grandChild2.innerHTML = newObj.description;
+
+      const grandChild3 = document.createElement("div");
+      grandChild3.innerHTML = newObj.id;
+
+      const grandChild4 = document.createElement("button");
+      grandChild4.innerHTML = "Mark as Done!";
+    
+      const del_btn = `
+            <button onClick="deletetodo(event)">
+                    Delete todo
+            </button>
+      `
+
+      const n_div = document.createElement('div');
+      n_div.setAttribute('id', newObj.id);
+      
+      n_div.innerHTML = del_btn;
+
+      child.appendChild(grandChild1);
+      child.appendChild(grandChild2);
+      child.appendChild(grandChild3);
+      child.appendChild(grandChild4);
+      // child.appendChild(grandChild5);
+
+      child.appendChild(n_div);
+
+      document.getElementById("todos").appendChild(child);
+
+
+    }
+
+    function deletetodo(event){
+      const del_id = event.target.parentNode.getAttribute('id');
+      console.log(`Value of del_id is ${del_id}`);
+
+      for(let i=0;i<todoState.length;i++){
+        if(del_id == todoState[i].id){
+          // it's time to delete
+          todoState.splice(i, 1);
+          break;
+        }
+      }
+      
+      console.log(todoState);
+
+      updateState(todoState);
+      removeTodo(del_id);
+    }
+
+    function removeTodo(todo_id) {
+    // console.log(`Value of id is ${todo_id}`)
+    const element = document.getElementById(todo_id);
+    
+    // Check if the element exists before attempting to remove it
+    if (element && element.parentNode) {
+      // console.log(element);
+      element.parentNode.removeChild(element);
+    } else {
+      console.error(`Element with id ${todo_id} not found`);
+    }
+  }
+
+    function updateTodo(oldTodo, newTodo) {
+      const element = document.getElementById(oldTodo.id);
+      element.children[0].innerHTML = newTodo.title;
+      element.children[1].innerHTML = newTodo.description;
+      element.children[0].innerHTML = newTodo.completed ? "Mark as done" : "Done";
+    }
+
+    function updateState(newTodos) {
+      // calculate the diff b/w newTodos and oldTodos.
+      // More specifically, find out what todos are - 
+      // 1. added
+      // 2. deleted
+      // 3. updated
+      const added = [];
+      const deleted = [];
+      const updated = [];
+      // calculate these 3 arrays
+      // call addTodo, removeTodo, updateTodo functions on each of the
+      // elements
+
+      // check for the added wala part 
+      for(const key of nMap.keys()){
+        console.log(key);
+        if(!oMap.has(key)){
+          let temp = nMap.get(key);
+          console.log(temp);
+          added.push(temp);
+        }
+      }
+
+      // Not able to get deleted values in this deleted array
+      // Do it later
+      
+      // check for deleted wala part 
+      for(const id of oMap.keys()){
+        if(!nMap.has(id)){
+          console.log("In deleted array ")
+          let temp = oMap.get(id);
+          console.log(`Deleted values ${temp}`)
+          
+          deleted.push(temp);
+          // deleted.push(oMap.get(id));
+        }
+      }
+
+      // for updation
+      for(const id of nMap.keys()){
+        if(oMap.has(id)){
+          let old_obj = oMap.get(id);
+          let n_obj = nMap.get(id);
+
+          if(old_obj != n_obj){
+            updated.push(n_obj); // this object has been updated
+          }
+
+        }
+      }
+
+      // op  for each array
+      added.forEach(ele => {
+        console.log("Added stuff")
+        console.log(ele.title, ele.description, ele.id);
+      })
+
+      deleted.forEach(ele => {
+        console.log("Deleted stuff")
+        console.log(ele.title, ele.description, ele.id);
+      })
+
+      updated.forEach(ele => {
+        console.log("updated stuff")
+        console.log(ele.title, ele.description, ele.id);
+      })
+      
+
+      // set the value of new Todo to the old state
+      newTodos.forEach(obj => {
+        if(!oMap.has(obj.id)){
+            oMap.set(obj.id, obj);
+        }
+      })
+
+      oldTodoState = newTodos;
+    }
+
+    function addTodo() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const id = document.getElementById("todo-id").value;
+
+      const obj = {
+        title: title,
+        description: description,
+        id: id,
+      }
+
+      todoState.push(obj);
+
+      nMap.set(obj.id, obj);
+      // console.log(nMap.keys());
+      
+        // console.log(`value oif key is ${key.}`);
+      // console.log(`value of nMap[id] in addTodo is ${nMap[id]}`)
+
+      // console.log(todoState, oldTodoState);
+      addTodoToDOM(obj); // Add the todo to the dom 
+      updateState(todoState);
+
+    }
+  </script>
+</head>
+
+<body>
+  <input type="text" id="title" placeholder="Todo title"></input> <br /><br />
+  <input type="text" id="description" placeholder="Todo description"></input> <br /><br />
+  <input type="text" id="todo-id" placeholder="Enter a todo id"></input> <br /><br />
+  
+  <button onclick="addTodo()">Add todo</button>
+  <!-- <button onclick="Delete()">Delete todo</button> -->
+  <button onclick="update()">Update todo</button>
+
+  <br /> <br />
+
+  <div id="todos">
+
+  </div>
+</body>
+
+</html>
